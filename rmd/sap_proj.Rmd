@@ -3,7 +3,14 @@ title: "SAP - Projekt"
 subtitle: "Case study *Antropometrijski podaci američkih vojnih snaga*"
 author: "Marija Dragošević, Petra Ilić, Petra Jović, Bartol Rod"
 date: "`r format(Sys.time(), '%d. %B, %Y.')`"
-output: pdf_document
+include-before:
+- '`\newpage{}`{=latex}'
+output: 
+  pdf_document:
+    toc: true
+    toc_depth: 4
+    number_sections: true
+toc-title: "Sadržaj"
 ---
 
 ```{r setup, include=FALSE}
@@ -24,11 +31,11 @@ options(dplyr.summarise.inform = FALSE)
 
 \newpage
 
-## Uvod
+# Uvod
 
 U ovom projektu bavit ćemo se analizom antropometrsijskih podatke američkih vojnih snaga (ANSUR_II). Podatci se sastoje od 6068 vojnika i 107 značajki sakupljenih od 2010 d0 2012 u raznim američkim vojnim kampovima.
 
-### Prikaz podataka
+## Prikaz podataka
 ```{r}
 # Učitavanje dataseta i pregled samo prvih nekoliko redaka
 data <- read.csv("../data/ANSUR_II_data.csv");
@@ -38,10 +45,10 @@ kable(df.transpose[,0:3], longtable = TRUE, booktab = T) %>% kable_styling(latex
 ```
 
 \newpage
-## Analiza vojnih kampova
+# Analiza vojnih kampova
 
 
-### Osnovne metode deskriptivne statistike
+## Osnovne metode deskriptivne statistike
 ```{r}
 #Prebrojavanje osoba po kampovima
 data %>% group_by(Installation) %>% count()
@@ -103,7 +110,7 @@ summary.campsBranch
 Iz izračuna srednje vrijednosti, medijana i standardne devijacije možemo naslutiti razliku u podatcima razvrstanim po kampovima. Uočavamo kako je i srednja vrijednost približno jednaka medijanu što upućuje na normalnost podataka. Razvrstavanjem po spolu u vojnim kampovima veći je udio muškaraca, iznimka je "Fort Lee" u kojem su samo žene. Također u kampu "Fort Lee" vidimo kako su i niže vrijednosti srednjih vrijednosti podataka nego u ostalim kampovima, no standardna devijacija ne odstupa.
 
 \newpage
-### ANOVA
+## ANOVA
 ```{r}
 camps <- unique(df.camps$Installation)
 
@@ -209,7 +216,7 @@ summary(a)
 Provođenjem ANOVA testa po pojedinim značajkama uočavamo kako postoji značajna razlika u odabranim antropometrijskim podacima razvrstanih po kampovima. 
 
 \newpage
-### Logistička regresija
+## Logistička regresija
 Želimo predvidjeti hoće li neki odabrani vojnik po svojim podatcima pripasti nekom kampu ili ne.
 ```{r echo = FALSE, results = FALSE}
 #logistička regresija za kamp "Camp Shelby"
@@ -223,7 +230,7 @@ summary(logreg.mdl)
 ```
 
 \newpage
-## Predviđanje kilaže vojnika 
+# Predviđanje kilaže vojnika 
 
 Kako bismo mogli predvidjeti kilažu vojnika, ispitat ćemo različite varijable koje bi mogle utjecati na nju:  
   
@@ -233,7 +240,7 @@ Kako bismo mogli predvidjeti kilažu vojnika, ispitat ćemo različite varijable
 - duljina prednjeg struka u sjedećem položaju 
 - opseg bedra
 
-### Jednostavna regresija
+## Jednostavna regresija
 ```{r echo = FALSE, results = FALSE}
 captions = c("Utjecaj visine na kilažu",
               "Utjecaj opsega struka na kilažu", 
@@ -315,7 +322,7 @@ ggplot(data, aes(thighcircumference, weightkg)) +
 \clearpage
 Nagibi pravaca linearne regresije potvrđuju tvrdnje o izraženom utjecaju razmatranih varijabli na kilažu vojnika. Kako bi se dobiveni modeli analizirali i usporedili, potrebno je provjeriti da pretpostavke modela o regresorima i rezidualima nisu narušene. Mora vrijediti normalnost reziduala i homogenost varijance i regresori u višestrukoj regresiji ne smiju biti međusobno jako korelirani.
 
-\textbf{Normalnost reziduala i homogenost varijance:  }
+### Normalnost reziduala i homogenost varijance  
 
 Normalnost reziduala provjerit ćemo grafički te statistički pomoću Lillieforsove inačice Kolmogorov-Smirnovljevog testa.
 
@@ -437,7 +444,7 @@ lillie.test(rstandard(fit.thighcircumference))
 
 Rezultati Kolmogorov-Smirnovljevog testa daju, osim u slučaju modela kilaže i opsega struka, male p-vrijednosti. No, budući da reziduali ne pokazuju preveliko odstupanje od normalnosti i da je t-test je robustan na normalnost, u analizi podataka se i dalje mogu donositi statistički zaključci iz regresijskih modela.
 
-\textbf{Ocjena kvalitete linearnog modela i statističko zaključivanje o procijenjenom modelu:  }
+### Ocjena kvalitete linearnog modela i statističko zaključivanje o procijenjenom modelu
 
 ```{r}
 summary(fit.stature)
@@ -464,7 +471,7 @@ summary(fit.thighcircumference)
 Kao što je bilo vidljivo iz grafičkih prikaza, opseg struka ima izražen utjecaj na kilažu vojnika i objašnjava najveći postotak varijance (najveća vrijednost $R^2$). Također, u svim slučajevima koeficijenti uz nezavisnu varijablu su značajni, te F-testovi upućuju na to i da su svi modeli značajni. 
 \bigskip    
 
-\textbf{Korelacijski koeficijenti u linearnom modelu:  }
+### Korelacijski koeficijenti u linearnom modelu
 
 ```{r}
 values = data.frame(data$stature, data$waistcircumference, data$neckcircumference, data$waistfrontlengthsitting, data$thighcircumference)
@@ -476,7 +483,7 @@ mcor
 Korelacijski koeficijenti potvrđuju da je utjecaj opsega struka na kilažu najizraženiji, a jak utjecaj imaju i opseg vrata kao i opseg bedra. Visina ima nešto manji, ali ipak značajan utjecaj.   
 \clearpage    
    
-### Višestruka regresija
+## Višestruka regresija
 
 Najprije je potrebno odabrati podskup varijabli koje nisu previše međusobno korelirane.
 
@@ -516,7 +523,7 @@ captions7 = c("Histogram reziduala višestruke regresije",
               "Reziduali višestruke regresije")
 ```
 \newpage
-\textbf{Provjera normalnosti reziduala: }  
+### Provjera normalnosti reziduala  
   
 ```{r residuali - visestruka regresija, echo= FALSE, fig.align= 'center', fig.pos= 'H', eval =T, fig.cap=captions7, out.width='0.7\\linewidth', fig.ncol = 2}
 
@@ -533,7 +540,10 @@ lillie.test(rstandard(fit.multi))
 
 ```
 
-Iz grafičkih prikaza vidi se da reziduali ne pokazuju preveliko odstupanje od normalnosti i u analizi podataka se i dalje mogu donositi statistički zaključci iz regresijskog modela.  
+Iz grafičkih prikaza vidi se da reziduali ne pokazuju preveliko odstupanje od normalnosti i u analizi podataka se i dalje mogu donositi statistički zaključci iz regresijskog modela.
+\newpage 
+
+### Uključivanje kategorijskih varijabli
 
 Kao regresor možemo uključiti i kategorijske varijable poput spola vojnika.
 ```{r kategorijske ulazne varijable, echo= FALSE, fig.align= 'center', fig.pos= 'H', eval =T, fig.cap=c('Kvadratni dijagram ovisnosti kilaže i spola'), out.width='0.7\\linewidth', fig.ncol = 2}
@@ -558,7 +568,9 @@ summary(fit.multi)
 Model koji uz svih pet navednih numeričkih varijabli uključuje i spol vojnika, daje nešto veći $R^2$. Međutim, ako pogledamo prilagođeni koeficijent determinacije $R_{adj}^2$ koji penalizira dodatne parametre u modelu, vidimo da su isti za oba modela, što znači da varijabla spola nije toliko korisna i radi jednostavnosti ju možemo izbaciti.
 
 \newpage
-## Opseg biceps
+# Opseg bicepsa
+
+## Prikaz raspodjele vojnika ovisno o preferenciji ruke i spolu 
 ```{r}
 # Prikaz podataka za preferenciju ruke vojnikinja i vojnika
 head(data[, c("bicepscircumferenceflexed", "WritingPreference")])
@@ -575,7 +587,9 @@ male_write
 barplot(male_write,ylab = 'Frequency', main='Barplot of Male Soldiers Writing Preference Distribution',col='light blue')
 ```
 
-### Test o dvije proporcije: dva uzorka
+## Test o dvije proporcije: dva uzorka
+
+### Udio ljevaka ovisno o spolu
 
 Želimo testirati hipotezu je li udio ljevakinja u odnosu na vojnikinje jednak udjelu ljevaka u odnosu na vojnike.
 
@@ -586,6 +600,8 @@ prop.test(x = c(190, 466), n = c(1986, 3682),alternative = "less")
 Zbog jako male p-vrijednosti od 0.0003075 možemo odbaciti $H_0$ hipotezu o jednakosti udjela  u korist $H_1$, odnosno možemo reći da je udio ljevakinja u ženskoj populaciji manji nego udio ljevaka u muškoj.
 
 U 1940-ima znanstvenici su primjetili tu zanimljivu pojavu, a ona glasi da su žene rjeđe ljevakinje od muškaraca. Nisu sve studije zabilježile ovakve rezultate, ali daljnjim istraživanjem (od 2008. pa nadalje) ispostavilo se stvarno da je udio ljevakinja u ženskoj populaciji manji od udjela ljevaka u muškoj. Razlozi zašto je to tako još moraju biti istraženi, ali svakako je zanimljivo da se i u ovom datasetu vidi ta pojava.
+
+## Opseg bicepsa ovisno o preferenciji ruke
 
 ```{r}
 
@@ -613,6 +629,10 @@ boxplot(right$bicepscircumferenceflexed, left$bicepscircumferenceflexed, ambi$bi
 Koristit ćemo neupareni t-test. Kako bi mogli provesti test, moramo najprije provjeriti pretpostavke normalnosti i nezavisnosti uzorka.
 
 S obzirom kako je odabrana cijela populacija jedne baze iz koje promatramo ljevake i dešnjake i jer baza broji puno vise od 30 članova smatramo kako su promatrani uzorci nezavisni. Iz istih razloga su nezavisni za dešnjake i ambidekstrene vojnike.
+
+### Opseg desnog bicepsa dešnjaka i ljevaka
+
+#### Provjera normalnosti podataka
 
 Sljedeći korak je provjeriti normalnost podataka koju najčešće provjeravamo: histgoramom, qq-plotom te KS-testom (kojim provjeravamo pripadnost podataka distribuciji).
 
@@ -658,15 +678,15 @@ var(left$bicepscircumferenceflexed)
 ```
 Jesu li varijance značajno različite? To ćemo ispitati testom o jednakosti varijanci.
 
-### Test o jednakosti varijanci
+#### Test o jednakosti varijanci
 Ako imamo dva nezavisna slučajna uzorka koji dolaze iz normalnih distribucija , tada slučajna varijabla
 ima Fisherovu distribuciju.
 ```{r}
 var.test(right$bicepscircumferenceflexed, left$bicepscircumferenceflexed)
 ```
-p-vrijednost od 0.6708 nam govori da nećemo odbaciti hipotezu $H_0$ da su varijance naša dva uzorka jednaka.
+p-vrijednost od 0.6708 nam govori da ne možemo odbaciti hipotezu $H_0$ da su varijance naša dva uzorka jednake.
 
-### Provedimo sada t-test uz pretpostavku jednakosti varijanci.
+#### t-test uz pretpostavku jednakosti varijanci
 
 $H_0$ prosječne vrijednosti opsega desnog bicepsa vojnika dešnjaka i vojnika ljevaka  su jednake\newline
 $H_1$ prosječne vrijednosti opsega desnog bicepsa dešnjaka vojnika i ljevaka vojnika su različite (tj. dešnjaci vojnici imaju u prosjeku veći desni biceps od vojnika ljevaka).
@@ -677,7 +697,7 @@ t.test(right$bicepscircumferenceflexed, left$bicepscircumferenceflexed, alt = "g
 ```
 Zbog p-vrijednost 0.3459 ne možemo odbaciti $H_0$ hipotezu tj. ne možemo zaključiti da postoji značajna razlika između prosječnih vrijednosti opsega bicepsa vojnika dešnjaka i vojnika ljevaka.
 
-### Sada želimo provjeriti imaju li vojnici dešnjaci veći opseg desnog bicepsa od ambidekstrenih vojnika.
+### Opseg desnog bicepsa dešnjaka i ambidekstrenih vojnika
 
 Provjeravamo na isti način kao i u prethodnom primjeru jer su sve pretpostavke zadovoljene (normalnost i nezavisnost).
 
@@ -686,6 +706,8 @@ var(right$bicepscircumferenceflexed)
 var(ambi$bicepscircumferenceflexed)
 
 ```
+#### Test o jednakosti varijanci
+
 Testom o jednakosti varijanci ispitujemo jesu li varijance značajno različite.
 
 ```{r}
@@ -694,7 +716,7 @@ var.test(right$bicepscircumferenceflexed, ambi$bicepscircumferenceflexed)
 
 p-vrijednost od 0.2517 nam govori da nećemo odbaciti hipotezu $H_0$ da su varijance naša dva uzorka jednaka.
 
-###Provedimo sada t-test uz pretpostavku jednakosti varijanci.
+#### t-test uz pretpostavku jednakosti varijanci
 
 $H_0$ prosječne vrijednosti opsega desnog bicepsa vojnika dešnjaka i ambidekstrenih vojnika su jednake\newline
 $H_1$ prosječne vrijednosti opsega desnog bicepsa dešnjaka vojnika i ambidekstrenih vojnika su različite (tj. dešnjaci vojnici imaju u prosjeku veći desni biceps od ambidekstrenih vojnika).
@@ -706,7 +728,7 @@ t.test(right$bicepscircumferenceflexed, ambi$bicepscircumferenceflexed, alt = "g
 Zbog jako male p-vrijednosti 0.04847 možemo odbaciti $H_0$ hipotezu o jednakosti prosječnih vrijednosti u korist $H_1$, odnosno možemo reći da vojnici dešnjaci u prosjeku imaju značajno veći desni biceps od ambidekstrenih vojnika.
 
 \newpage
-## Mjere kaciga
+# Mjere kaciga
 ```{r data}
 # Prikaz podataka bitnih mjera glave
 head(data[, c("headbreadth", "headcircumference", "headlength")])
@@ -725,7 +747,6 @@ class(data$headlength)
 # Iz priloženog se vidi da su sve varijable integer, a mjerne jedinice su milimetri.
 
 ```
-
 
 ## Summary
 
