@@ -47,80 +47,139 @@ kable(df.transpose[,0:3], longtable = TRUE, booktab = T) %>% kable_styling(latex
 \newpage
 # Analiza vojnih kampova
 
+## Priprema podataka
 
-## Osnovne metode deskriptivne statistike
+Prvo čemo provjeriti broj opažanja i udio spolova u kampovima.
+\newline
 ```{r}
-#Prebrojavanje osoba po kampovima
-data %>% group_by(Installation) %>% count()
+#Prebrojavanje osoba u kampovima
+df.count = data %>% group_by(Installation) %>% count()
 df.camps <- filter(data, data$Installation != "Fort Rucker")
-```
+df.count
 
-Prebrojavanjem osoba po kampovima možemo vidjeti da se u kampu "Fort Rucker" nalazi samo jedna osoba, stoga taj kamp izbacujemo iz analize.
+#Udio spolova u kampovima
+df.genderRatio = data %>% group_by(Installation) %>%
+  summarize(pct.males = sum(Gender == "Male") * 100 / length(Gender),
+            pct.female = 100 - pct.males)
+df.genderRatio
+```
+\clearpage
+\newpage
+Prebrojavanjem vojnika u kampovima vidimo da se u kampu "Fort Rucker" nalazi samo jedna osoba, stoga taj kamp nećemo koristiti u našoj analizi.
 
 Za analizu smo nasumično odabrali sljedeće atribute:
 
-  - opseg prsa (chestcircumference)
-  - duljinu ruke (handlength)
-  - širina bokova (hipbreadth)
-  - službu (Branch)
-  - spol (Gender)
-  
+- duljina svoda stopala (balloffootlength)
+- opseg prsa (chestcircumference)
+- duljina ruke (handlength)
+- širina kukova (hipbreadth)
+- spol (Gender).
+
 ```{r}
-df.camps <- df.camps[names(df.camps) %in% c("Installation", "chestcircumference", "hipbreadth", "handlength", "Branch", "Gender")]
+df.camps <- df.camps[names(df.camps) %in% c("balloffootlength", "chestcircumference", "handlength", "hipbreadth", "Gender", "Installation")]
+df.camps$Gender = factor(df.camps$Gender, levels = c("Male", "Female"), labels = c("Male", "Female"))
+
+installations = unique(df.camps$Installation)
+df.camps$Installation = factor(df.camps$Installation, levels = c(unlist(installations)), labels = c(unlist(installations)))
+
 summary(df.camps)
 ```
+\clearpage
 
-```{r echo = FALSE, results = FALSE}
+```{r}
 #Srednja vrijednost
 df.mean <- df.camps %>% group_by(Installation) %>% summarise(
+      mean.balloffootlength = mean(balloffootlength),
       mean.chestcircumference = mean(chestcircumference),
       mean.handlength = mean(handlength),
       mean.hipbreadth = mean(hipbreadth))
-df.mean
+kable(df.mean, caption = "Srednja vrijednost pojedine mjere u zasebnom kampu")
 
 #Medijan
 df.med <- df.camps %>% group_by(Installation) %>% summarise(
+      med.balloffootlength = median(balloffootlength),
       med.chestcircumference = median(chestcircumference),
       med.handlength = median(handlength),
       med.hipbreadth = median(hipbreadth))
-df.med
+kable(df.med, caption = "Medijan pojedine mjere u zasebnom kampu")
 
-#Standardna devijacija
-df.sd <- df.camps %>% group_by(Installation) %>% summarise(
-      sd.chestcircumference = sd(chestcircumference),
-      sd.handlength = sd(handlength),
-      sd.hipbreadth = sd(hipbreadth))
-df.sd
-
-#Spolovi u kmapovima
-df.camps %>% count(Gender)
-df.camps %>% group_by(Installation, Gender) %>% summarise(
-      n = n()
-) -> summary.campsGender
-summary.campsGender
-
-#Branch po kampovima
-df.camps %>% count(Branch)
-df.camps %>% group_by(Installation, Branch) %>% summarise(
-      n = n()
-) -> summary.campsBranch
-summary.campsBranch
+#Varijanca
+df.var <- df.camps %>% group_by(Installation) %>% summarise(
+      var.balloffootlength = var(balloffootlength),
+      var.chestcircumference = var(chestcircumference),
+      var.handlength = var(handlength),
+      var.hipbreadth = var(hipbreadth))
+kable(df.var, caption = "Varijanca pojedine mjere u zasebnom kampu")
 ```
-
-Iz izračuna srednje vrijednosti, medijana i standardne devijacije možemo naslutiti razliku u podatcima razvrstanim po kampovima. Uočavamo kako je i srednja vrijednost približno jednaka medijanu što upućuje na normalnost podataka. Razvrstavanjem po spolu u vojnim kampovima veći je udio muškaraca, iznimka je "Fort Lee" u kojem su samo žene. Također u kampu "Fort Lee" vidimo kako su i niže vrijednosti srednjih vrijednosti podataka nego u ostalim kampovima, no standardna devijacija ne odstupa.
+\clearpage
+Iz pregleda srednjih vrijednosti i medijana kampova, pošto su približno jednaki, možemo naslutiti na normalnu razdiobu vrijednosti. Također, ispisom varijance ne uočavamo veliko odstupanje u vrijednosti među kampovima, stoga, kako bi smo vidjeli imali li neke značajne razlike u antropometrijskim podatcima možemo provest jednofaktorski ANOVA model.
 
 \newpage
-## ANOVA
-```{r}
-camps <- unique(df.camps$Installation)
+## Jednofaktorska ANOVA
 
-#testiranje normalnosti
+Pretpostavke ANOVE su:
+
+- nezavisnost pojedinih podataka u uzorcima
+- normalna razdioba podataka
+- homogenost varijanci među populacijama.
+
+Podatci su neovisni pošto se radi o pojedinim osobama.
+
+### Normalna razdioba
+
+```{r echo = FALSE, results = FALSE}
+captions = c("Histogram duljine svoda stopala",
+             "Histogram opsega prsa", 
+             "Histogram duljine ruke",
+             "Histogram širine kukova")
+```
+
+```{r histogram, echo = FALSE, eval =T, fig.align = "center", fig.cap=captions, out.width='0.9\\linewidth', fig.ncol = 4}
+#Histogrami
+ggplot(data=df.camps, aes(x=balloffootlength, group=Installation, fill=Installation, color=Installation)) +
+  geom_histogram(bins=30) +
+  facet_wrap(~Installation) +
+  theme(axis.text.x = element_text(angle=90, hjust=1)) +
+  ylab("Observations") + xlab("Ball of foot length [mm]") 
+
+ggplot(data=df.camps, aes(x=chestcircumference, group=Installation, fill=Installation, color=Installation)) +
+  geom_histogram(bins=30) +
+  facet_wrap(~Installation) +
+  theme(axis.text.x = element_text(angle=90, hjust=1)) +
+  ylab("Observations") + xlab("Chest circumference [mm]") 
+
+ggplot(data=df.camps, aes(x=handlength, group=Installation, fill=Installation, color=Installation)) +
+  geom_histogram(bins=30) +
+  facet_wrap(~Installation) +
+  theme(axis.text.x = element_text(angle=90, hjust=1)) +
+  ylab("Observations") + xlab("Hand length [mm]") 
+
+ggplot(data=df.camps, aes(x=hipbreadth, group=Installation, fill=Installation, color=Installation)) +
+  geom_histogram(bins=30) +
+  facet_wrap(~Installation) +
+  theme(axis.text.x = element_text(angle=90, hjust=1)) +
+  ylab("Observations") + xlab("Hip breadth [mm]") 
+```
+\clearpage
+```{r fig.pos= 'H'}
+#testiranje normalnosti lillieforsovom inačicom Kolmogorov-Smirnovovog test
+lil = lillie.test(scale(df.camps$balloffootlength))
+
+i <- 2
+l.foot <- list()
+l.foot[[1]] <- lil$p.value
+for (camp in installations) {
+  lil = lillie.test(scale(df.camps$balloffootlength[df.camps$Installation==camp]))
+  l.foot[[i]] <- lil$p.value
+  i <- i + 1
+}
+
 lil = lillie.test(scale(df.camps$chestcircumference))
 
 i <- 2
 l.chest <- list()
 l.chest[[1]] <- lil$p.value
-for (camp in camps) {
+for (camp in installations) {
   lil = lillie.test(scale(df.camps$chestcircumference[df.camps$Installation==camp]))
   l.chest[[i]] <- lil$p.value
   i <- i + 1
@@ -131,7 +190,7 @@ lil = lillie.test(scale(df.camps$handlength))
 i <- 2
 l.hand <- list()
 l.hand[[1]] <- lil$p.value
-for (camp in camps) {
+for (camp in installations) {
   lil = lillie.test(scale(df.camps$handlength[df.camps$Installation==camp]))
   l.hand[[i]] <- lil$p.value
   i <- i + 1
@@ -142,68 +201,70 @@ lil = lillie.test(scale(df.camps$hipbreadth))
 i <- 2
 l.hip <- list()
 l.hip[[1]] <- lil$p.value
-for (camp in camps) {
+for (camp in installations) {
   lil = lillie.test(scale(df.camps$hipbreadth[df.camps$Installation==camp]))
   l.hip[[i]] <- lil$p.value
   i <- i + 1
 }
 
-df.pval <- data.frame("Installation" = c("Ungrouped", camps), "chestcircumference.p" = c(unlist(l.chest)), 
+df.pval <- data.frame("Installation" = c("Ungrouped", installations), "balloffootlength.p" = c(unlist(l.foot)), "chestcircumference.p" = c(unlist(l.chest)), 
                       "handlength.p" = c(unlist(l.hand)), "hipbreadth" = c(unlist(l.hip)), stringsAsFactors=FALSE)
-df.pval
+kable(df.pval, caption = "P-vrijednosti Kolmogorov-Smirnovovog testa pojedinih vrijednosti u kampovima")
 ```
 
-Provođenjem Kolmogorov–Smirnovog testa možemo zaključiti kako se neki podatci ponašaju veoma normalno. Također znatna razlika u p-vrijednosti negrupiranih podataka također može ukazati na postojanje razlike u grupama.
-
-```{r}
-#Histogrami podataka
-ggplot(data=df.camps, aes(x=chestcircumference, group=Installation, fill=Installation, color=Installation)) +
-  geom_histogram(bins=30) +
-  facet_wrap(~Installation) +
-  theme(axis.text.x = element_text(angle=90, hjust=1)) +
-  ggtitle("Chestcircumference by Installation") 
-
-ggplot(data=df.camps, aes(x=handlength, group=Installation, fill=Installation, color=Installation)) +
-  geom_histogram(bins=30) +
-  facet_wrap(~Installation) +
-  theme(axis.text.x = element_text(angle=90, hjust=1)) +
-  ggtitle("Handlength by Installation")
-
-ggplot(data=df.camps, aes(x=hipbreadth, group=Installation, fill=Installation, color=Installation)) +
-  geom_histogram(bins=30) +
-  facet_wrap(~Installation) +
-  theme(axis.text.x = element_text(angle=90, hjust=1)) +
-  ggtitle("Hipbreadth by Installation")
-```
+Testiranjem podataka na normalnost u večini slučajeva vidimo veoma visoke p-vrijednosti što uz određeni nivo značajnosti ukazuje na normalnost. P-vrijednosti negrupiranih pojedinih atributa bitno se razlikuju od grupiranih čime također možemo naslutiti na postojanje neke razlike među vojnim kampovima. Grafički prikaz podataka također nas navodi kako su podatci normalno distribuirani.
 \newpage
-Testiranjem na normalnost te iz grafičkog prikaza značajki kampova možemo naslutiti kako su podaci u kampovima normalno raspoređeni.
+
+### Homogenost varijanci među populacijama
+
+```{r echo = FALSE, results = FALSE}
+captions = c("Boxplot-ovi duljine svoda stopala",
+             "Boxplot-ovi opsega prsa", 
+             "Boxplot-ovi duljine ruke",
+             "Boxplot-ovi širine kukova")
+```
+
+```{r boxplot 2, echo = FALSE, eval =T, fig.align = "center", fig.cap=captions, out.width='0.9\\linewidth', fig.ncol = 4}
+#boxplottovi podataka po kampovima
+ggplot(df.camps, aes(Installation, balloffootlength)) + 
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle=90, hjust=1)) +
+  xlab("Installations") + ylab("Ball of foot length [mm]") 
+
+ggplot(df.camps, aes(Installation, chestcircumference)) + 
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle=90, hjust=1)) +
+  xlab("Installations") + ylab("Chest circumference [mm]") 
+
+ggplot(df.camps, aes(Installation, handlength)) + 
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle=90, hjust=1)) +
+  xlab("Installations") + ylab("Hand length [mm]") 
+
+ggplot(df.camps, aes(Installation, hipbreadth)) + 
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle=90, hjust=1)) +
+  xlab("Installations") + ylab("Hip breadth [mm]") 
+```
+\clearpage
+
 ```{r}
 #ispitivanje homogenosti varijanci
+bartlett.test(df.camps$balloffootlength ~ df.camps$Installation)
 bartlett.test(df.camps$chestcircumference ~ df.camps$Installation)
 bartlett.test(df.camps$handlength ~ df.camps$Installation)
 bartlett.test(df.camps$hipbreadth ~ df.camps$Installation)
 ```
+Iako Bartlettov test homogenosti varijanci ne daje povoljne p-vrijednosti, pošto se naše varijance ne razlikuju za veću dimenziju, provest ćemo ANOV-u.
 
-```{r}
-#boxplottovi podataka po kampovima
-boxp.chestcircumference <- ggplot(df.camps, aes(Installation, chestcircumference)) + 
-  geom_boxplot() +
-  theme(axis.text.x = element_text(angle=90, hjust=1)) 
-boxp.chestcircumference
+\newpage
+### Provođenje ANOVA-e
 
-boxp.handlength <- ggplot(df.camps, aes(Installation, handlength)) + 
-  geom_boxplot()+
-  theme(axis.text.x = element_text(angle=90, hjust=1)) 
-boxp.handlength
-
-boxp.hipbreadth <- ggplot(df.camps, aes(Installation, hipbreadth)) + 
-  geom_boxplot() +
-  theme(axis.text.x = element_text(angle=90, hjust=1)) 
-boxp.hipbreadth
-```
-Grafički prikaz opsega prsa i duljinu ruki sugerira na jasnu razliku u podacima među kampvima, no kod prikaza opsega kuka to ne možemo vidjeti.
 ```{r}
 #anova
+a = aov(df.camps$balloffootlength ~ df.camps$Installation)
+summary(a)
+
 a = aov(df.camps$chestcircumference ~ df.camps$Installation)
 summary(a)
 
@@ -213,21 +274,89 @@ summary(a)
 a = aov(df.camps$hipbreadth ~ df.camps$Installation)
 summary(a)
 ```
-Provođenjem ANOVA testa po pojedinim značajkama uočavamo kako postoji značajna razlika u odabranim antropometrijskim podacima razvrstanih po kampovima. 
+Provođenjem ANOVA-e uz beznačajno male p-vrijednosti zaključujemo kako postoji bitna razlika u varijancama antropometrijskih podataka pojedinog vojnog kampa.
 
 \newpage
-## Logistička regresija
-Želimo predvidjeti hoće li neki odabrani vojnik po svojim podatcima pripasti nekom kampu ili ne.
+## Dvofaktorska ANOVA
+
+Iz boxplot-a nekih antropometrijskih podataka možemo vidjeti znatno odskakanje srednje vrijednosti kampa "Fort Lee". Nadalje, iz tablice udjela spolova u kampovima vidljivo je da u kampu "Fort Lee" nema opažanja muških vojnika. Stoga provodimo dvofaktorsku ANOVA-u s faktorima spola i kampa.
+
 ```{r echo = FALSE, results = FALSE}
-#logistička regresija za kamp "Camp Shelby"
-df.camps
-df.campsLog <- df.camps %>% mutate(
-   camp_shelby = if_else(Installation == "Camp Shelby", TRUE, FALSE)
-)
-df.campsLog
-logreg.mdl = glm(camp_shelby ~ chestcircumference + handlength + hipbreadth + Gender + Branch, data = df.campsLog, family = binomial())
-summary(logreg.mdl)
+captions = c("Boxplot-ovi duljine svoda stopala po spolovima",
+             "Boxplot-ovi opsega prsa po spolovima", 
+             "Boxplot-ovi duljine ruke po spolovima",
+             "Boxplot-ovi širine kukova po spolovima")
 ```
+
+```{r boxplot 3, echo = FALSE, eval =T, fig.align = "center", fig.cap=captions, out.width='0.9\\linewidth', fig.ncol = 4}
+ggplot(df.camps, aes(Gender, balloffootlength)) + 
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle=90, hjust=1)) +
+  xlab("Gender") + ylab("Ball of foot length [mm]") 
+
+ggplot(df.camps, aes(Gender, chestcircumference)) + 
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle=90, hjust=1)) +
+  xlab("Gender") + ylab("Chest circumference [mm]") 
+
+ggplot(df.camps, aes(Gender, handlength)) + 
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle=90, hjust=1)) +
+  xlab("Gender") + ylab("Hand length [mm]") 
+
+ggplot(df.camps, aes(Gender, hipbreadth)) + 
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle=90, hjust=1)) +
+  xlab("Gender") + ylab("Hip breadth [mm]") 
+```
+\clearpage
+```{r echo = FALSE, results = FALSE}
+captions = c("Boxplot-ovi duljine svoda stopala [Installation, Gender]",
+             "Boxplot-ovi opsega prsa po spolovima [Installation, Gender]", 
+             "Boxplot-ovi duljine ruke po spolovima [Installation, Gender]",
+             "Boxplot-ovi širine kukova po spolovima [Installation, Gender]")
+```
+
+```{r boxplot, echo = FALSE, eval =T, fig.align = "center", fig.cap=captions, out.width='0.9\\linewidth', fig.ncol = 4}
+inter = interaction(df.camps$Installation, df.camps$Gender)
+boxplot(df.camps$balloffootlength ~ inter,cex.axis=0.5, xlab = "Installation, Gender", ylab = "Ball of foot length [mm]")
+
+boxplot(df.camps$chestcircumference ~ inter,cex.axis=0.5, xlab = "Installation, Gender", ylab = "Chest circumference [mm]")
+
+boxplot(df.camps$handlength ~ inter,cex.axis=0.5, xlab = "Installation, Gender", ylab = "Hand length [mm]")
+
+boxplot(df.camps$hipbreadth ~ inter,cex.axis=0.5, xlab = "Installation, Gender", ylab = "Hip breadth [mm]")
+```
+\clearpage
+Iz boxplotova vidljiva je znatna razlika u srednjoj vrijednosti po spolovima. 
+
+```{r}
+#test varijance
+bartlett.test(df.camps$balloffootlength ~ inter)
+bartlett.test(df.camps$chestcircumference ~ inter)
+bartlett.test(df.camps$handlength ~ inter)
+bartlett.test(df.camps$hipbreadth ~ inter)
+```
+
+```{r}
+#anova
+a = aov(balloffootlength ~ Installation * Gender, data = df.camps)
+summary(a)
+
+a = aov(chestcircumference ~ Installation * Gender, data = df.camps)
+summary(a)
+
+a = aov(handlength ~ Installation * Gender, data = df.camps)
+summary(a)
+
+a = aov(hipbreadth ~ Installation * Gender, data = df.camps)
+summary(a)
+```
+
+## Zaključak
+
+Provođenjem jednofaktorske ANOVA-e zaključili smo kako postoji značajna razlika u antropometrijskim podacima populacija vojnih kampova. Daljnjom analizom grafički smo prikazali kako faktor spola utječe na neke antropometrijske mjere kao što su duljina ruke ili opseg prsa, ali iako je faktor spola podjelio podatke u njihovim srednjim vrijednostima, temeljem dvofaktorske ANOVA-e zaključili smo da još uvijek postoji značajna razlika u varijanci promatranih antropometrijskih podataka između istospolnih populacija kampova.   
+
 
 \newpage
 # Predviđanje kilaže vojnika 
