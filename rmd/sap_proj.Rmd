@@ -699,7 +699,7 @@ summary(fit.multi)
 Model koji uz svih pet navednih numeričkih varijabli uključuje i spol vojnika, daje nešto veći $R^2$. Međutim, ako pogledamo prilagođeni koeficijent determinacije $R_{adj}^2$ koji penalizira dodatne parametre u modelu, vidimo da su isti za oba modela, što znači da varijabla spola nije toliko korisna i radi jednostavnosti ju možemo izbaciti.
 
 \newpage
-# Opseg bicepsa
+# Preferencija ruke i opseg desnog bicepsa
 
 ## Prikaz raspodjele vojnika ovisno o preferenciji ruke i spolu 
 ```{r}
@@ -729,7 +729,7 @@ prop.test(x = c(190, 466), n = c(1986, 3682),alternative = "less")
 
 ```
 Zbog jako male p-vrijednosti od 0.0003075 možemo odbaciti $H_0$ hipotezu o jednakosti udjela  u korist $H_1$, odnosno možemo reći da je udio ljevakinja u ženskoj populaciji manji nego udio ljevaka u muškoj.
-
+\newline
 U 1940-ima znanstvenici su primjetili tu zanimljivu pojavu, a ona glasi da su žene rjeđe ljevakinje od muškaraca. Nisu sve studije zabilježile ovakve rezultate, ali daljnjim istraživanjem (od 2008. pa nadalje) ispostavilo se stvarno da je udio ljevakinja u ženskoj populaciji manji od udjela ljevaka u muškoj. Razlozi zašto je to tako još moraju biti istraženi, ali svakako je zanimljivo da se i u ovom datasetu vidi ta pojava.
 
 ## Opseg bicepsa ovisno o preferenciji ruke
@@ -800,7 +800,7 @@ lillie.test(scale(ambi$bicepscircumferenceflexed))
 Histogrami upućuju na normalnost podataka kao i qq-plotovi.
 
 Pod uvjetom da podatci zadovoljavaju sve pretpostavke možemo nastaviti sa t-testom kako bi ispitali imaju li dešnjaci veći opseg desnog bicepsa od ljevaka.
-
+\newline
 Kakve su varijance danih uzoraka?
 
 ```{r}
@@ -809,19 +809,20 @@ var(left$bicepscircumferenceflexed)
 ```
 Jesu li varijance značajno različite? To ćemo ispitati testom o jednakosti varijanci.
 
-#### Test o jednakosti varijanci
-Ako imamo dva nezavisna slučajna uzorka koji dolaze iz normalnih distribucija , tada slučajna varijabla
-ima Fisherovu distribuciju.
+#### Test o jednakosti 
+\newline
+Ako imamo dva nezavisna slučajna uzorka koji dolaze iz normalnih distribucija , tada slučajna varijabla ima Fisherovu distribuciju.
 ```{r}
 var.test(right$bicepscircumferenceflexed, left$bicepscircumferenceflexed)
 ```
 p-vrijednost od 0.6708 nam govori da ne možemo odbaciti hipotezu $H_0$ da su varijance naša dva uzorka jednake.
 
 #### t-test uz pretpostavku jednakosti varijanci
-
-$H_0$ prosječne vrijednosti opsega desnog bicepsa vojnika dešnjaka i vojnika ljevaka  su jednake\newline
+\newline
+$H_0$ prosječne vrijednosti opsega desnog bicepsa vojnika dešnjaka i vojnika ljevaka  su jednake
+\newline
 $H_1$ prosječne vrijednosti opsega desnog bicepsa dešnjaka vojnika i ljevaka vojnika su različite (tj. dešnjaci vojnici imaju u prosjeku veći desni biceps od vojnika ljevaka).
-
+\newline
 ```{r}
 # Bitan je poredak kojim funkciji 't.test()' prosljedjujemo uzorke!
 t.test(right$bicepscircumferenceflexed, left$bicepscircumferenceflexed, alt = "greater", var.equal = TRUE)
@@ -848,10 +849,11 @@ var.test(right$bicepscircumferenceflexed, ambi$bicepscircumferenceflexed)
 p-vrijednost od 0.2517 nam govori da nećemo odbaciti hipotezu $H_0$ da su varijance naša dva uzorka jednaka.
 
 #### t-test uz pretpostavku jednakosti varijanci
+\newline
 
 $H_0$ prosječne vrijednosti opsega desnog bicepsa vojnika dešnjaka i ambidekstrenih vojnika su jednake\newline
 $H_1$ prosječne vrijednosti opsega desnog bicepsa dešnjaka vojnika i ambidekstrenih vojnika su različite (tj. dešnjaci vojnici imaju u prosjeku veći desni biceps od ambidekstrenih vojnika).
-
+\newline
 ```{r}
 # Bitan je poredak kojim funkciji 't.test()' prosljedjujemo uzorke!
 t.test(right$bicepscircumferenceflexed, ambi$bicepscircumferenceflexed, alt = "greater", var.equal = TRUE)
