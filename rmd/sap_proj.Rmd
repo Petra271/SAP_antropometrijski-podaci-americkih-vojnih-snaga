@@ -330,7 +330,7 @@ Normalnost reziduala provjerit ćemo grafički te statistički pomoću Lilliefor
 
 ```{r echo = FALSE, results=FALSE}
 captions2 = c("Histogram reziduala modela kilaže i visine",
-              "Prikaz g-g plota reziduala modela kilaže i visine s linijom normalne distribucije", 
+              "Prikaz q-q  plota reziduala modela kilaže i visine s linijom normalne distribucije", 
               "Reziduali modela kilaže i visine u ovisnosti o procjenama modela")
 ```
 
@@ -353,7 +353,7 @@ lillie.test(rstandard(fit.stature))
 
 ```{r echo = FALSE, results=FALSE}
 captions3 = c("Histogram reziduala modela kilaže i opsega struka",
-              "Prikaz g-g plota reziduala modela kilaže i opsega struka s linijom normalne distribucije", 
+              "Prikaz q-q plota reziduala modela kilaže i opsega struka s linijom normalne distribucije", 
               "Reziduali modela kilaže i opsega struka u ovisnosti o procjenama modela")
 ```
 
@@ -376,7 +376,7 @@ lillie.test(rstandard(fit.waistcircumference))
 
 ```{r echo = FALSE, results=FALSE}
 captions4 = c("Histogram reziduala modela kilaže i opsega vrata",
-              "Prikaz g-g plota reziduala modela kilaže i opsega vrata s linijom normalne distribucije", 
+              "Prikaz q-q plota reziduala modela kilaže i opsega vrata s linijom normalne distribucije", 
               "Reziduali modela kilaže i opsega vrata u ovisnosti o procjenama modela")
 ```
 
@@ -399,7 +399,7 @@ lillie.test(rstandard(fit.neckcircumference))
 
 ```{r echo = FALSE, results=FALSE}
 captions5 = c("Histogram reziduala modela kilaže i duljine prednjeg struka u sjedećem položaju",
-              "Prikaz g-g plota reziduala modela kilaže i duljine prednjeg struka u sjedećem položaju s linijom normalne distribucije", 
+              "Prikaz q-q plota reziduala modela kilaže i duljine prednjeg struka u sjedećem položaju s linijom normalne distribucije", 
               "Reziduali modela kilaže i duljine prednjeg struka u sjedećem položaju u ovisnosti o procjenama modela")
 ```
 
@@ -423,7 +423,7 @@ lillie.test(rstandard(fit.waistfrontlengthsitting))
 
 ```{r echo = FALSE, results=FALSE}
 captions6 = c("Histogram reziduala modela kilaže i opsega bedra",
-              "Prikaz g-g plota reziduala modela kilaže i opsega bedra s linijom normalne distribucije", 
+              "Prikaz q-q plota reziduala modela kilaže i opsega bedra s linijom normalne distribucije", 
               "Reziduali modela kilaže i opsega bedra u ovisnosti o procjenama modela")
 ```
 
@@ -518,9 +518,9 @@ summary(fit.multi1)
 Model višestruke regresije koji uključuje sve varijable objašnjava cca. $97\%$ varijance u podatcima.
 
 ```{r echo = FALSE, results=FALSE}
-captions7 = c("Histogram reziduala višestruke regresije",
-              "Prikaz g-g plota reziduala višestruke regresije", 
-              "Reziduali višestruke regresije")
+captions7 = c("Histogram reziduala modela višestruke regresije",
+              "Prikaz q-q plota reziduala model višestruke regresije", 
+              "Reziduali modela višestruke regresije")
 ```
 \newpage
 ### Provjera normalnosti reziduala  
