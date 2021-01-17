@@ -33,7 +33,7 @@ options(dplyr.summarise.inform = FALSE)
 
 # Uvod
 
-U ovom projektu bavit ćemo se analizom antropometrsijskih podatke američkih vojnih snaga (ANSUR_II). Podatci se sastoje od 6068 vojnika i 107 značajki sakupljenih od 2010 d0 2012 u raznim američkim vojnim kampovima.
+U ovom projektu bavit ćemo se analizom antropometrijskih podataka američkih vojnih snaga (ANSUR_II). Podatci se sastoje od 6068 vojnika i 107 značajki sakupljenih od 2010 do 2012 u raznim američkim vojnim kampovima.
 
 ## Prikaz podataka
 ```{r}
@@ -114,7 +114,6 @@ kable(df.var, caption = "Varijanca pojedine mjere u zasebnom kampu")
 \clearpage
 Iz pregleda srednjih vrijednosti i medijana kampova, pošto su približno jednaki, možemo naslutiti na normalnu razdiobu vrijednosti. Također, ispisom varijance ne uočavamo veliko odstupanje u vrijednosti među kampovima, stoga, kako bi smo vidjeli imali li neke značajne razlike u antropometrijskim podatcima možemo provest jednofaktorski ANOVA model.
 
-\newpage
 ## Jednofaktorska ANOVA
 
 Pretpostavke ANOVE su:
@@ -212,7 +211,7 @@ df.pval <- data.frame("Installation" = c("Ungrouped", installations), "balloffoo
 kable(df.pval, caption = "P-vrijednosti Kolmogorov-Smirnovovog testa pojedinih vrijednosti u kampovima")
 ```
 
-Testiranjem podataka na normalnost u večini slučajeva vidimo veoma visoke p-vrijednosti što uz određeni nivo značajnosti ukazuje na normalnost. P-vrijednosti negrupiranih pojedinih atributa bitno se razlikuju od grupiranih čime također možemo naslutiti na postojanje neke razlike među vojnim kampovima. Grafički prikaz podataka također nas navodi kako su podatci normalno distribuirani.
+Testiranjem podataka na normalnost u večini slučajeva vidimo veoma visoke p-vrijednosti što uz određeni nivo značajnosti ukazuje na normalnost. P-vrijednosti negrupiranih pojedinih atributa bitno se razlikuju od grupiranih čime također možemo naslutiti na postojanje neke razlike među vojnim kampovima (uočavamo Simpsonov paradoks). Grafički prikaz podataka također nas navodi kako su podatci normalno distribuirani. 
 \newpage
 
 ### Homogenost varijanci među populacijama
@@ -248,6 +247,7 @@ ggplot(df.camps, aes(Installation, hipbreadth)) +
 ```
 \clearpage
 
+### Bartlettov test homogenosti varijance
 ```{r}
 #ispitivanje homogenosti varijanci
 bartlett.test(df.camps$balloffootlength ~ df.camps$Installation)
@@ -330,6 +330,7 @@ boxplot(df.camps$hipbreadth ~ inter,cex.axis=0.5, xlab = "Installation, Gender",
 \clearpage
 Iz boxplotova vidljiva je znatna razlika u srednjoj vrijednosti po spolovima. 
 
+### Bartlettov test homogenosti varijance
 ```{r}
 #test varijance
 bartlett.test(df.camps$balloffootlength ~ inter)
@@ -338,6 +339,7 @@ bartlett.test(df.camps$handlength ~ inter)
 bartlett.test(df.camps$hipbreadth ~ inter)
 ```
 
+### Provođenje ANOVA-e
 ```{r}
 #anova
 a = aov(balloffootlength ~ Installation * Gender, data = df.camps)
