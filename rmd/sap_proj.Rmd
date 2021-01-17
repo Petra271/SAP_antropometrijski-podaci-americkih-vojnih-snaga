@@ -860,8 +860,9 @@ Zbog jako male p-vrijednosti 0.04847 možemo odbaciti $H_0$ hipotezu o jednakost
 
 \newpage
 # Mjere kaciga
+Prikaz podataka bitnih mjera glave
+
 ```{r data}
-# Prikaz podataka bitnih mjera glave
 head(data[, c("headbreadth", "headcircumference", "headlength")])
 ```
 
@@ -870,23 +871,18 @@ head(data[, c("headbreadth", "headcircumference", "headlength")])
 ```{r}
 
 # Klase svih varijabla mjera glave
-
-class(data$headbreadth)
-class(data$headcircumference)
-class(data$headlength)
-
-# Iz priloženog se vidi da su sve varijable integer, a mjerne jedinice su milimetri.
+cat("Klasa headbreadth: ",class(data$headbreadth))
+cat("\nKlasa headcircumference: ",class(data$headcircumference))
+cat("\nKlasa headlength: ",class(data$headlength))
 
 ```
+Iz priloženog se vidi da su sve varijable integer, a mjerne jedinice su milimetri.
 
 ## Summary
 
-
+Ispis minimalne, maksimalne i srednje vrijednosti te medijana, prvog i trećeg kvartila
 ```{r}
-
-# Ispis minimalne, maksimalne i srednje vrijednosti te medijana, prvog i trećeg kvartila
 summary(data[, c("headbreadth", "headcircumference", "headlength")])
-
 ```
 
 ## Mjere centralne tendencije i mjere rasipanja
@@ -935,64 +931,48 @@ data  %>% summarise(
 
 bind_rows(summary.result0, summary.result1, summary.result2, summary.result3, summary.result4, summary.result5)
 ```
+\newpage
+## Vizualizacija podataka mjera glave
+Ovi histogrami prikazuju oblik distribucije i gustoću podataka mjera glave, dok pravokutni dijagrami prikazuju medijane, kvartile te najmanje i najveće vrijednosti.
 
-## Vizualizacija podataka
+```{r fig.align = "center", out.width='0.9\\linewidth', fig.ncol = 4}
 
-* Histogram - pokazuje oblik distribucije i gustoću podataka, a zasnovan je na grupiranju varijabli u razrede
-* Dijagram raspršenja (scatter plot) - jedan je od najvažnijih načina prikaza bivarijantnih podataka, te daje informaciju o povezanosti varijabli.
-
-```{r}
 h = hist(data$headbreadth,
          main="headbreadth histogram",
          xlab="headbreadth [mm]",
          ylab='Frequency',
-         col="blue"
+         col="light salmon"
          )
-
-# Histogram s headbreadth relativnih frekvencija:
-h = hist(data$headbreadth,
-         prob=TRUE,
-         breaks=15,
-         main="headbreadth histogram",
-         xlab="headbreadth [mm]",
-         ylab='Frequency',
-         col="blue"
-         )
+boxplot(data$headbreadth,
+        main='headbreadth box-plot',
+        ylab='headbreadth [mm]',
+        col="light salmon")
 
 h = hist(data$headlength,
          main="headlength histogram",
          xlab="headlength [mm]",
          ylab='Frequency',
-         col="blue"
+         col="slate blue1"
          )
+boxplot(data$headlength,
+        main='headlength box-plot',
+        ylab='headlength [mm]',
+        col="slate blue1")
 
-# Histogram s headlength relativnih frekvencija:
-h = hist(data$headlength,
-         prob=TRUE,
-         breaks=15,
-         main="headlength histogram",
-         xlab="headlength [mm]",
-         ylab='Frequency',
-         col="blue"
-         )
 h = hist(data$headcircumference,
          main="headcircumference histogram",
          xlab="headcircumference [mm]",
          ylab='Frequency',
-         col="blue"
+         col="darkolivegreen1"
          )
+boxplot(data$headcircumference,
+        main='headcircumference box-plot',
+        ylab='headcircumference [mm]',
+        col="darkolivegreen1")
 
-# Histogram s headcircumference relativnih frekvencija:
-h = hist(data$headcircumference,
-         prob=TRUE,
-         breaks=15,
-         main="headcircumference histogram",
-         xlab="headcircumference [mm]",
-         ylab='Frequency',
-         col="blue"
-         )
 
 ```
+\newpage
 
 ## Prikaz veličina kaciga
 
@@ -1001,83 +981,51 @@ Daljna statistička analiza podataka će se referencirati na ove veličine kacig
 ```{r, fig.cap="Helmet sizing", out.width = '100%'}
 knitr::include_graphics("../images/helmetSizing.png")
 ```
+\newpage
 
-```{r}
-# Pravokutni dijagram:
-boxplot(data$headcircumference,
-        main='headcircumference box-plot',
-        ylab='headcircumference [mm]')
+## Pie chart-ovi s custom breakpointovima po veličinama kaciga
 
-boxplot(data$headlength,
-        main='headlength box-plot',
-        ylab='headlength [mm]')
+Ovi pie chart-ovi prikazuju koliko točno vojnika bi nosilo određenu veličinu kacige gledajući samo jedan podatak od zadana tri.
 
-boxplot(data$headbreadth,
-        main='headbreadth box-plot',
-        ylab='headbreadth [mm]')
-```
+```{r fig.align = "center", out.width='0.9\\linewidth', fig.ncol = 4}
 
-## Histogrami s custom breakpointovima po veličinama kaciga
+countXL = nrow(data[data$headbreadth >= 162,])
+countLMS = nrow(data[data$headbreadth < 162,])
+slices <- c(countXL, countLMS)
+lbls <- c("XL","S/M/L")
+pct <- round(slices/sum(slices)*100, digits = 2)
+lbls <- paste(lbls, pct, sep=" - ") # add percents to labels
+lbls <- paste(lbls,"%",sep="") # ad % to labels
+pie(slices,labels = lbls, col=rainbow(length(lbls)),
+   main="Pie Chart veličina kaciga prema headbreadth")
 
-```{r}
-h = hist(data$headbreadth,
-         main="Head breadth histogram for helmet",
-         xlab="headbreadth [mm]",
-         ylab='Frequency',
-         col="blue",
-         breaks=c(131,162,180),
-         labels = TRUE
-         )
+countXL = nrow(data[data$headcircumference >= 597,])
+countL = nrow(data[data$headcircumference >= 573,])-countXL
+countM = nrow(data[data$headcircumference >= 538,])-countXL-countL
+countS = nrow(data[data$headcircumference < 538,])
+slices <- c(countXL, countL, countM, countS)
+lbls <- c("XL","L", "M", "S")
+pct <- round(slices/sum(slices)*100, digits = 2)
+lbls <- paste(lbls, pct, sep=" - ") # add percents to labels
+lbls <- paste(lbls,"%",sep="") # ad % to labels
+pie(slices,labels = lbls, col=rainbow(length(lbls)),
+   main="Pie Chart veličina kaciga prema headcircumference")
 
-h$density = h$counts/sum(h$counts)*100
-p = plot(h,
-     freq=FALSE,
-     labels= TRUE,
-     col="blue",
-     main="Head breadth histogram for helmet",
-     xlab="headbreadth [mm]",
-     ylab='Percentage [%]')
-
-
-j = hist(data$headlength,
-         main="Head length histogram for helmet",
-         xlab="headlength [mm]",
-         ylab='Frequency',
-         col="blue",
-         breaks=c(168, 184, 198, 210, 225),
-         labels = TRUE
-         )
-j$density = j$counts/sum(j$counts)*100
-plot(j,
-     freq=FALSE,
-     labels= TRUE,
-     col="blue",
-     main="Head length histogram for helmet",
-     xlab="headlength [mm]",
-     ylab='Percentage [%]')
-
-
-
-k = hist(data$headcircumference,
-         main="Head circumference histogram for helmet",
-         xlab="headcircumference [mm]",
-         ylab='Frequency',
-         col="blue",
-         breaks=c(500,538, 573, 597,635),
-         labels = TRUE
-         )
-k$density = k$counts/sum(k$counts)*100
-plot(k,
-     freq=FALSE,
-     labels= TRUE,
-     col="blue",
-     main="Head circumference histogram for helmet",
-     xlab="headcircumference [mm]",
-     ylab='Percentage [%]')
+countXL = nrow(data[data$headlength >= 210,])
+countL = nrow(data[data$headlength >= 198,])-countXL
+countM = nrow(data[data$headlength >= 184,])-countXL-countL
+countS = nrow(data[data$headlength < 184,])
+slices <- c(countXL, countL, countM, countS)
+lbls <- c("XL","L", "M", "S")
+pct <- round(slices/sum(slices)*100, digits = 2)
+lbls <- paste(lbls, pct, sep=" - ") # add percents to labels
+lbls <- paste(lbls,"%",sep="") # ad % to labels
+pie(slices,labels = lbls, col=rainbow(length(lbls)),
+   main="Pie Chart veličina kaciga prema headlength")
 
 ```
-
-## Brojevi vojnika kojima treba odreena veličina kacige
+\newpage
+## Brojevi vojnika kojima treba određena veličina kacige
 
 ```{r}
 # Broj vojnika koji treba nositi kacigu broj xl:
